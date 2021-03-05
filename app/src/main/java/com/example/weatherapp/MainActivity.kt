@@ -20,6 +20,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.util.*
 import kotlin.concurrent.thread
 
 
@@ -218,7 +219,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getLanguage(){
-        language = "hu"//TODO()
+        //language = Locale.getDefault().getDisplayLanguage() //magyar
+        //language = Locale.getDefault().getISO3Language()      //hun
+        language = Locale.getDefault().getLanguage()       //hu
     }
 
     private suspend fun networkRequest(): Response {
