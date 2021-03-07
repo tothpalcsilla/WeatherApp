@@ -323,10 +323,14 @@ class MainActivity : AppCompatActivity() {
                         val imageBitmap = getImageBitmap("https:$iconUrl")
                         withContext(Dispatchers.Main){ //switched to Main thread
                             fragment.city.text = city
-                            fragment.date.text = "Friss: $lastUpdate"
+                            fragment.lastUpdate.text = getString(R.string.update, lastUpdate)
                             fragment.icon.setImageBitmap(imageBitmap)
                             fragment.temperature.text = "$temperature°C"
+                            fragment.wind.setText(R.string.wind)
+                            fragment.wind_icon.setImageResource(R.drawable.wind4_g)
+                            fragment.wind_speed_title.setText(R.string.speed)
                             fragment.wind_speed.text = " $windSpeed m/h"
+                            fragment.wind_direction_title.setText(R.string.direction)
                             fragment.wind_direction.text = " $windDirection°"
                             fragment.short_description.text = conditionText
                         }

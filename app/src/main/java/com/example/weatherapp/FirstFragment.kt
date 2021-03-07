@@ -5,12 +5,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.viewModels
-import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 
 /**
  * Jelezzük ki a hőmérsékletet, szélerősséget, szélirányt és a rövid leírást.
@@ -21,10 +17,14 @@ class FirstFragment : Fragment() {
     //lateinit var location: TextView
 
     lateinit var city: TextView
-    lateinit var date: TextView
+    lateinit var lastUpdate: TextView
     lateinit var icon: ImageView
     lateinit var temperature: TextView
+    lateinit var wind: TextView
+    lateinit var wind_icon: ImageView
+    lateinit var wind_speed_title: TextView
     lateinit var wind_speed: TextView
+    lateinit var wind_direction_title: TextView
     lateinit var wind_direction: TextView
     lateinit var short_description: TextView
 
@@ -40,10 +40,14 @@ class FirstFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         city = view.findViewById(R.id.city)
-        date = view.findViewById(R.id.date)
+        lastUpdate = view.findViewById(R.id.date)
         icon = view.findViewById(R.id.icon)
         temperature = view.findViewById(R.id.temperature)
+        wind = view.findViewById(R.id.wind)
+        wind_icon = view.findViewById(R.id.wind_icon)
+        wind_speed_title = view.findViewById(R.id.wind_speed_title)
         wind_speed = view.findViewById(R.id.wind_speed)
+        wind_direction_title = view.findViewById(R.id.wind_direction_title)
         wind_direction = view.findViewById(R.id.wind_direction)
         short_description = view.findViewById(R.id.short_description)
 

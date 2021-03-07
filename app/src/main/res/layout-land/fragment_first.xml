@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/boat_1920"
+    android:background="@drawable/sunset_1920"
     tools:context=".FirstFragment">
 
     <TableLayout
@@ -14,6 +14,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:background="#70FFFFFF"
         android:layout_margin="10dp"
         android:padding="10dp">
 
@@ -21,7 +22,7 @@
                 android:id="@+id/city"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="50sp"
+                android:textSize="40sp"
                 android:textStyle="bold" />
             <TextView
                 android:id="@+id/date"
@@ -51,7 +52,7 @@
                 <TextView
                     android:id="@+id/temperature"
                     android:textStyle="bold"
-                    android:textSize="50sp"
+                    android:textSize="40sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
 

@@ -8,7 +8,7 @@
     <string name="wind">Szél:</string>
     <string name="speed">seb: </string>
     <string name="direction">irány: </string>
-    <string name="update">Friss:</string>
+    <string name="update">Friss: %1$s</string>
     <string name="city">Város</string>
     <string name="api_key_dialog_title">Kérem adja meg az API kulcsot</string>
     <string name="api_key_hint">API kulcs</string>

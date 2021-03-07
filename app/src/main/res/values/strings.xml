@@ -7,7 +7,7 @@
     <string name="wind">Wind:</string>
     <string name="speed">sp: </string>
     <string name="direction">dir: </string>
-    <string name="update">Upd:</string>
+    <string name="update">Upd: %1$s</string>
     <string name="city">City</string>
     <string name="api_key_dialog_title">Please set the API key</string>
     <string name="api_key_hint">API key</string>
