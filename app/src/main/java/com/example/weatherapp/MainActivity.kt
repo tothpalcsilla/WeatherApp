@@ -2,10 +2,8 @@ package com.example.weatherapp
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.app.Dialog
 import android.content.ContentValues.TAG
 import android.content.Context
-import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -17,9 +15,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -41,22 +37,22 @@ import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
-    private val Base_URL = "https://api.weatherapi.com/v1"
-    private val Current_weather = "/current.json"
+    private val baseURL = "https://api.weatherapi.com/v1"
+    private val currentWeather = "/current.json"
 
     private val REQUEST_PERMISSION_FINE_LOCATION = 1
 
     //private val MY_API_KEY = "7242d5381f68418c8ff93444210203"
-    lateinit var MY_API_KEY : String
-    lateinit var editTextField: EditText
+    private lateinit var myApiKey : String
+    private lateinit var editTextField: EditText
 
-    lateinit var locationManager: LocationManager
-    lateinit var locationGps: Location
-    lateinit var locationNetwork: Location
-    lateinit var location : String
-    lateinit var language : String
-    var hasGps = false
-    var hasNetwork = false
+    private lateinit var locationManager: LocationManager
+    private lateinit var locationGps: Location
+    private lateinit var locationNetwork: Location
+    private lateinit var location : String
+    private lateinit var language : String
+    private var hasGps = false
+    private var hasNetwork = false
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,31 +60,44 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
 
-        var prefs : SharedPreferences = getSharedPreferences("prefs", Context.MODE_PRIVATE)
-        val s : String? = prefs.getString("apyKey", "")
-        MY_API_KEY = prefs.getString("apyKey", "") ?: ""
+        val prefs : SharedPreferences = getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        myApiKey = prefs.getString("apyKey", "") ?: ""
 
-        if (MY_API_KEY == "") {
-            showApiDialog()
-        } else if (ActivityCompat.checkSelfPermission(
-                    this,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                ActivityCompat.requestPermissions(
+        getPermission()
+    }
+
+    private fun getPermission(){
+        if (ActivityCompat.checkSelfPermission(
                         this,
-                        arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
-                        REQUEST_PERMISSION_FINE_LOCATION
-                )
+                        android.Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                    REQUEST_PERMISSION_FINE_LOCATION
+            )
+        } else getApiKey()
+    }
 
-                /*AlertDialog.Builder(this).setTitle("No Internet Connection")
-                    .setMessage("Please check your internet connection and try again")
-                    .setPositiveButton(android.R.string.ok) { _, _ -> }
-                    .setIcon(android.R.drawable.ic_dialog_alert).show()*/
+    private fun getApiKey(){
+        if (myApiKey == "") {
+            showApiDialog()
         } else {
             getLocation()
             getLanguage()
             getWeather()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_PERMISSION_FINE_LOCATION) {
+            if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getApiKey()
+            } else {
+                this.getPermission()
+            }
         }
     }
 
@@ -98,22 +107,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will automatically handle clicks on the Home/Up button,
-        // so long as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_APIkey_setting -> {
-                //this.findNavController(R.id.nav_graph).navigate(R.id.action_FirstFragment_to_SecondFragment)
-                val fbDialogue = Dialog(this)
-                //fbDialogue.getWindow().setBackgroundDrawable(ColorDrawable(Color.argb(100, 0, 0, 0)))
-                fbDialogue.setContentView(R.layout.fragment_second)
-                fbDialogue.setCancelable(true)
-                fbDialogue.show()
-
-                //val fragmentSec: SecondFragment = supportFragmentManager.fragments.first().childFragmentManager.fragments.first() as SecondFragment
-                //fragmentSec.apiKey.setText(MY_API_KEY)
+                showApiDialog(myApiKey)
                 true
             }
-            R.id.action_update -> true
+            R.id.action_update -> {
+                TODO()
+                //true
+            }
             R.id.action_exit -> {
                 finishAffinity()
                 true
@@ -123,7 +125,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("ResourceType")
-    private fun showApiDialog(){
+    private fun showApiDialog(oldApiKey : String = ""){
         /*val fbDialogue = Dialog(this)
         //fbDialogue.getWindow().setBackgroundDrawable(ColorDrawable(Color.argb(100, 0, 0, 0)))
         fbDialogue.setContentView(R.layout.fragment_second)
@@ -133,53 +135,57 @@ class MainActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
                 .setTitle(R.string.api_key_dialog_title)
                 .setCancelable(false)
-        // Get the layout inflater
-        val inflater = this.layoutInflater;
-
-        // Inflate and set the layout for the dialog
-        // Pass null as the parent view because its going in the dialog layout
-        //val inf = inflater.inflate(R.layout.fragment_second, null)
-        //builder.setView(inf)
-
         editTextField = EditText(this)
         editTextField.setHint((R.string.api_key_hint))
-        editTextField.setTextSize(15F)
+        editTextField.textSize = 15F
+        if(oldApiKey != "") editTextField.setText(oldApiKey)
         builder.setView(editTextField)
 
         // Add action buttons
-        builder.setPositiveButton(R.string.save,
-                        DialogInterface.OnClickListener { dialog, id ->
-                            //val s : String = inf.text as String
-                            val editTextInput = editTextField.text.toString()
-                            if(editTextInput != ""){
-                                GlobalScope.launch {
-                                    var response : Response
-                                    withContext(Dispatchers.IO) {// IO: Optimized for network and disk operations
-                                        val url = Base_URL + Current_weather
-                                        response = khttp.get(url = url, params = mapOf("key" to editTextInput, "q" to "London"))
-                                    }
-                                    println(response)
-                                    if(response.statusCode >= 400){
-                                        //Toast.makeText(applicationContext, "Your API key is invalid", Toast.LENGTH_SHORT).show()
-                                        editTextField.setText("")
-                                    } else {
-                                        var prefs : SharedPreferences = getSharedPreferences("prefs", Context.MODE_PRIVATE)
-                                        var editor : SharedPreferences.Editor = prefs.edit()
-                                        editor.putString("apyKey", editTextInput)
-                                        editor.apply()
-                                        //Toast.makeText(applicationContext, R.string.save, Toast.LENGTH_SHORT).show()
-                                        dialog.cancel()
-                                    }
-                                }
-                            }
-                            //dialog.cancel()
-                        })
-                .setNegativeButton(R.string.cancel,
-                        DialogInterface.OnClickListener { dialog, id ->
-                            if (MY_API_KEY == "") finishAffinity()
-                            dialog.cancel()
-                        })
-        builder.create().show()
+        builder.setPositiveButton(R.string.save) { _, _ ->
+                    //has to be empty -> override after dialog show
+                }
+                .setNegativeButton(R.string.cancel) { dialog, _ ->
+                    if (myApiKey == "") finishAffinity()
+                    dialog.cancel()
+                }
+        val dialog = builder.create()
+        dialog.show()
+        //Overriding the handler immediately after show
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val editTextInput = editTextField.text.toString()
+            if(editTextInput != ""){
+                // check that the set api key is correct
+                GlobalScope.launch {
+                    var response : Response
+                    withContext(Dispatchers.IO) {// IO: Optimized for network and disk operations
+                        val url = baseURL + currentWeather
+                        response = khttp.get(url = url, params = mapOf("key" to editTextInput, "q" to "London"))
+                    }
+                    if(response.statusCode >= 400){
+                        withContext(Dispatchers.Main){ //switched to Main thread
+                            Toast.makeText(applicationContext, "Your API key is invalid, please set a valid", Toast.LENGTH_SHORT).show()
+                        }
+                        editTextField.setText("")
+                    } else {
+                        withContext(Dispatchers.Main){ //switched to Main thread
+                            myApiKey = editTextInput
+                            val editor : SharedPreferences.Editor = getSharedPreferences("prefs", Context.MODE_PRIVATE).edit()
+                            editor.putString("apyKey", editTextInput)
+                            editor.apply()
+                            Toast.makeText(applicationContext, R.string.save, Toast.LENGTH_SHORT).show()
+
+                            getLocation()
+                            getLanguage()
+                            getWeather()
+                        }
+                        dialog.dismiss()
+                    }
+                }
+            } else if (editTextInput == ""){
+                Toast.makeText(applicationContext, "Please set an API key", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     // Az API felé a helyet geo koordinátákkal adjuk át, amit a készülék GPS adataiból határozzunk meg.
@@ -209,11 +215,9 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         override fun onProviderEnabled(provider: String) {
-
                         }
 
                         override fun onProviderDisabled(provider: String) {
-
                         }
 
                         override fun onStatusChanged(
@@ -240,11 +244,9 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         override fun onProviderEnabled(provider: String) {
-
                         }
 
                         override fun onProviderDisabled(provider: String) {
-
                         }
 
                         override fun onStatusChanged(
@@ -255,7 +257,7 @@ class MainActivity : AppCompatActivity() {
 
                         }
                     })
-                val localNetworkLocation =
+                val localNetworkLocation : Location? =
                     locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                 if (localNetworkLocation != null) locationNetwork = localNetworkLocation
             }
@@ -279,18 +281,19 @@ class MainActivity : AppCompatActivity() {
 
     // A készüléken beállított nyelvet adjuk át. (a rövid szöveges leírás ezen a nyelven fog érkezni)
     private fun getLanguage(){
-        language = Locale.getDefault().getLanguage()
+        language = Locale.getDefault().language
     }
 
     private suspend fun networkRequest(): Response {
         lateinit var response : Response
         withContext(Dispatchers.IO) {// IO: Optimized for network and disk operations
-            val url = Base_URL + Current_weather
-            response = khttp.get(url = url, params = mapOf("key" to MY_API_KEY, "q" to location, "lang" to language))
+            val url = baseURL + currentWeather
+            response = khttp.get(url = url, params = mapOf("key" to myApiKey, "q" to location, "lang" to language))
         }
         return response
     }
 
+    @SuppressLint("SetTextI18n")
     private fun getWeather() {
         GlobalScope.launch {
             val response = networkRequest()
@@ -305,29 +308,27 @@ class MainActivity : AppCompatActivity() {
                         val current : JSONObject = obj.get("current") as JSONObject
 
                         val city : String = location.get("name") as String
-                        val last_update : String = current.get("last_updated") as String
+                        val lastUpdate : String = current.get("last_updated") as String
                         // Temperature in celsius
                         val temp: Double = current.get("temp_c") as Double
                         val temperature : Int = temp.toInt()
-                        // Feels like temperature in celsius
-                        val temperature2: Double = current.get("feelslike_c") as Double
                         // Wind speed in miles per hour
-                        val wind_speed: Double = current.get("wind_mph") as Double
+                        val windSpeed: Double = current.get("wind_mph") as Double
                         // Wind direction in degrees
-                        val wind_direction: Int = current.get("wind_degree") as Int
+                        val windDirection: Int = current.get("wind_degree") as Int
 
                         val condition : JSONObject = current.get("condition") as JSONObject
-                        val condition_text : String = condition.get("text") as String
-                        val icon_url : String = condition.get("icon") as String
-                        var imageBitmap = getImageBitmap("https:$icon_url") //http://cdn.weatherapi.com/weather/64x64/day/113.png
+                        val conditionText : String = condition.get("text") as String
+                        val iconUrl : String = condition.get("icon") as String
+                        val imageBitmap = getImageBitmap("https:$iconUrl")
                         withContext(Dispatchers.Main){ //switched to Main thread
-                            fragment.city.setText(city)
-                            fragment.date.setText("Friss: $last_update")
-                            fragment.icon.setImageBitmap(imageBitmap);
-                            fragment.temperature.setText("$temperature°C")
-                            fragment.wind_speed.setText(" $wind_speed m/h")
-                            fragment.wind_direction.setText(" $wind_direction°")
-                            fragment.short_description.setText(condition_text)
+                            fragment.city.text = city
+                            fragment.date.text = "Friss: $lastUpdate"
+                            fragment.icon.setImageBitmap(imageBitmap)
+                            fragment.temperature.text = "$temperature°C"
+                            fragment.wind_speed.text = " $windSpeed m/h"
+                            fragment.wind_direction.text = " $windDirection°"
+                            fragment.short_description.text = conditionText
                         }
                     }
                     400 -> {
@@ -353,7 +354,7 @@ class MainActivity : AppCompatActivity() {
                     else -> errorCode = "Unknown error."                        }
                 if(errorCode != ""){
                     withContext(Dispatchers.Main){
-                        fragment.short_description.setText(errorCode)
+                        fragment.short_description.text = errorCode
                     }
                 }
             }

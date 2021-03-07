@@ -6,12 +6,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
 import androidx.navigation.fragment.findNavController
 
 /**
- * A simple [Fragment] subclass as the second destination in the navigation.
+ * A működéshez szükséges API keyt, az első indításkor kérdezze meg.
+ * Az API keyt tároljuk. Ha már van beállítva, akkor indításkor nem kell újra megkérdezni.
  */
 class SecondFragment : Fragment() {
+
+    lateinit var apiKey: EditText
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
@@ -24,8 +29,9 @@ class SecondFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.findViewById<Button>(R.id.button_second).setOnClickListener {
+        /*view.findViewById<Button>(R.id.button_second).setOnClickListener {
             findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
-        }
+        }*/
+        apiKey = view.findViewById(R.id.api_key)
     }
 }
