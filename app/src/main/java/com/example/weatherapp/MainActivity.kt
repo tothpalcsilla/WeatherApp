@@ -18,6 +18,7 @@ import android.view.MenuItem
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.app.ActivityCompat
 import androidx.navigation.findNavController
 import khttp.responses.Response
@@ -101,8 +102,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
+        if (menu is MenuBuilder) {
+            val m: MenuBuilder = menu
+            m.setOptionalIconsVisible(true)
+        }
         return true
     }
 
@@ -136,8 +142,11 @@ class MainActivity : AppCompatActivity() {
                 .setTitle(R.string.api_key_dialog_title)
                 .setCancelable(false)
         editTextField = EditText(this)
-        editTextField.setHint((R.string.api_key_hint))
+        editTextField.setHint(R.string.api_key_hint)
+        editTextField.setSingleLine()
         editTextField.textSize = 15F
+        editTextField.background.clearColorFilter()
+        editTextField.setPadding(40, 60,40, 10)
         if(oldApiKey != "") editTextField.setText(oldApiKey)
         builder.setView(editTextField)
 
@@ -164,7 +173,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     if(response.statusCode >= 400){
                         withContext(Dispatchers.Main){ //switched to Main thread
-                            Toast.makeText(applicationContext, "Your API key is invalid, please set a valid", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(applicationContext, R.string.invalid_api_key, Toast.LENGTH_SHORT).show()
                         }
                         editTextField.setText("")
                     } else {
@@ -183,7 +192,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             } else if (editTextInput == ""){
-                Toast.makeText(applicationContext, "Please set an API key", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, R.string.empty_api_key, Toast.LENGTH_SHORT).show()
             }
         }
     }

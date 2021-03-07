@@ -13,4 +13,6 @@
     <string name="api_key_hint">API key</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="invalid_api_key">Your API key is invalid, please set a valid</string>
+    <string name="empty_api_key">Please set an API key</string>
 </resources>

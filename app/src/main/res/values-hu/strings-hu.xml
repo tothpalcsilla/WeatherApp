@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">WeatherApp</string>
-    <string name="action_apikey_setting">API key beállítása</string>
+    <string name="action_apikey_setting">API kulcs beállítása</string>
     <string name="action_update">Frissítés</string>
     <string name="action_exit">Kilépés</string>
     <string name="icon">Időjárás ikon</string>
@@ -14,4 +14,6 @@
     <string name="api_key_hint">API kulcs</string>
     <string name="save">Mentés</string>
     <string name="cancel">Mégse</string>
+    <string name="invalid_api_key">A beállított API kulcs nem érvényes, kérem próbálja meg újra</string>
+    <string name="empty_api_key">Kérem állítson be API kulcsot</string>
 </resources>
