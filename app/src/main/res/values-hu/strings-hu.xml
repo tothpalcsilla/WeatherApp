@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WeatherApp</string>
+    <string name="action_apikey_setting">API key beállítása</string>
+    <string name="action_update">Frissítés</string>
+    <string name="action_exit">Kilépés</string>
+    <string name="icon">Időjárás ikon</string>
+    <string name="wind">Szél:</string>
+    <string name="speed">seb: </string>
+    <string name="direction">irány: </string>
+    <string name="update">Friss:</string>
+    <string name="city">Város</string>
+    <string name="api_key_dialog_title">Kérem adja meg az API kulcsot</string>
+    <string name="api_key_hint">API kulcs</string>
+    <string name="save">Mentés</string>
+    <string name="cancel">Mégse</string>
+</resources>

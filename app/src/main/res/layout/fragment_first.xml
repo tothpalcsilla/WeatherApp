@@ -5,9 +5,131 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/boat_1920"
     tools:context=".FirstFragment">
 
-    <TextView
+    <TableLayout
+        android:id="@+id/table"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:padding="20dp">
+
+            <TextView
+                android:id="@+id/city"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="50sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/date"
+                android:textSize="20sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        <TableRow>
+
+            <ImageView
+                android:id="@+id/icon"
+                android:contentDescription="@string/icon"
+                android:scaleType="centerCrop"
+                android:scaleX="1.2"
+                android:scaleY="1.2"
+                android:minWidth="100dp"
+                android:minHeight="100dp"
+                android:maxHeight="100dp"
+                android:maxWidth="100dp"
+                android:layout_gravity="start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="1"/>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_column="2" >
+                <TextView
+                    android:id="@+id/temperature"
+                    android:textStyle="bold"
+                    android:textSize="50sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/short_description"
+                    android:textSize="20sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+        </TableRow>
+        <TextView
+            android:layout_marginTop="-20dp"
+            android:text="@string/wind"
+            android:textSize="20sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start"/>
+        <TableRow>
+
+            <LinearLayout
+                android:layout_column="1"
+                android:layout_span="2"
+                android:orientation="horizontal">
+                <ImageView
+                    android:src="@drawable/wind4_g"
+                    android:contentDescription="@string/icon"
+                    android:adjustViewBounds="true"
+                    android:maxWidth="40dp"
+                    android:maxHeight="40dp"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"/>
+
+                <TableLayout
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content">
+                    <TableRow>
+                        <TextView
+                            android:text="@string/speed"
+                            android:textSize="20sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="end"
+                            android:layout_column="1"/>
+
+                        <TextView
+                            android:id="@+id/wind_speed"
+                            android:textSize="20sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_column="2"/>
+                    </TableRow>
+
+                    <TableRow>
+                        <TextView
+                            android:text="@string/direction"
+                            android:textSize="20sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="end"
+                            android:layout_column="1"/>
+
+                        <TextView
+                            android:id="@+id/wind_direction"
+                            android:textSize="20sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_column="2"/>
+                    </TableRow>
+                </TableLayout>
+
+            </LinearLayout>
+
+        </TableRow>
+
+    </TableLayout>
+    <!--TextView
         android:id="@+id/textview_first"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -25,5 +147,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textview_first" />
+        app:layout_constraintTop_toBottomOf="@id/table" /-->
 </androidx.constraintlayout.widget.ConstraintLayout>
