@@ -8,19 +8,23 @@
     android:background="@drawable/sunset_1920"
     tools:context=".FirstFragment">
 
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
     <TableLayout
         android:id="@+id/table"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:background="#70FFFFFF"
         android:layout_margin="10dp"
         android:padding="10dp">
 
             <TextView
                 android:id="@+id/city"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="40sp"
                 android:textStyle="bold" />
@@ -131,4 +135,5 @@
         </TableRow>
 
     </TableLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

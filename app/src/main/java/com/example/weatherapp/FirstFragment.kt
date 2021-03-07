@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TableLayout
 import android.widget.TextView
 
 /**
@@ -16,6 +17,7 @@ class FirstFragment : Fragment() {
 
     //lateinit var location: TextView
 
+    lateinit var table : TableLayout
     lateinit var city: TextView
     lateinit var lastUpdate: TextView
     lateinit var icon: ImageView
@@ -39,6 +41,7 @@ class FirstFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        table = view.findViewById(R.id.table)
         city = view.findViewById(R.id.city)
         lastUpdate = view.findViewById(R.id.date)
         icon = view.findViewById(R.id.icon)

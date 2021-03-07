@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ContentValues.TAG
 import android.content.Context
+import android.content.IntentSender
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -21,6 +22,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.app.ActivityCompat
 import androidx.navigation.findNavController
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
 import khttp.responses.Response
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -42,14 +48,15 @@ class MainActivity : AppCompatActivity() {
     private val currentWeather = "/current.json"
 
     private val REQUEST_PERMISSION_FINE_LOCATION = 1
+    private val REQUEST_CHECK_CODE = 2
 
     //private val MY_API_KEY = "7242d5381f68418c8ff93444210203"
     private lateinit var myApiKey : String
     private lateinit var editTextField: EditText
 
     private lateinit var locationManager: LocationManager
-    private lateinit var locationGps: Location
-    private lateinit var locationNetwork: Location
+    private var locationGps: Location? = null
+    private var locationNetwork: Location? = null
     private lateinit var location : String
     private lateinit var language : String
     private var hasGps = false
@@ -64,6 +71,34 @@ class MainActivity : AppCompatActivity() {
         val prefs : SharedPreferences = getSharedPreferences("prefs", Context.MODE_PRIVATE)
         myApiKey = prefs.getString("apyKey", "") ?: ""
 
+        /*val request = LocationRequest()
+            .setFastestInterval(1500)
+            .setInterval(3000)
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+        val builder: LocationSettingsRequest.Builder = LocationSettingsRequest.Builder().addLocationRequest(request)
+        val result = LocationServices.getSettingsClient(this).checkLocationSettings(builder.build())
+        result.addOnCompleteListener(OnCompleteListener<LocationSettingsResponse?> { task ->
+            try {
+                task.getResult(ApiException::class.java)
+                getPermission()
+            } catch (e: ApiException) {
+                when (e.statusCode) {
+                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> try {
+                        val resolvableApiException =
+                            e as ResolvableApiException
+                        resolvableApiException.startResolutionForResult(
+                            this@MainActivity,
+                            REQUEST_CHECK_CODE
+                        )
+                    } catch (ex: IntentSender.SendIntentException) {
+                        ex.printStackTrace()
+                    } catch (ex: java.lang.ClassCastException) {
+                    }
+                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
+                    }
+                }
+            }
+        })*/
         getPermission()
     }
 
@@ -85,10 +120,14 @@ class MainActivity : AppCompatActivity() {
         if (myApiKey == "") {
             showApiDialog()
         } else {
-            getLocation()
-            getLanguage()
-            getWeather()
+            updateWeather()
         }
+    }
+
+    private fun updateWeather(){
+        getLocation()
+        getLanguage()
+        getWeather()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -119,8 +158,8 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.action_update -> {
-                TODO()
-                //true
+                updateWeather()
+                true
             }
             R.id.action_exit -> {
                 finishAffinity()
@@ -132,12 +171,6 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("ResourceType")
     private fun showApiDialog(oldApiKey : String = ""){
-        /*val fbDialogue = Dialog(this)
-        //fbDialogue.getWindow().setBackgroundDrawable(ColorDrawable(Color.argb(100, 0, 0, 0)))
-        fbDialogue.setContentView(R.layout.fragment_second)
-        fbDialogue.setCancelable(true)
-        fbDialogue.show()*/
-
         val builder = AlertDialog.Builder(this)
                 .setTitle(R.string.api_key_dialog_title)
                 .setCancelable(false)
@@ -146,7 +179,7 @@ class MainActivity : AppCompatActivity() {
         editTextField.setSingleLine()
         editTextField.textSize = 15F
         editTextField.background.clearColorFilter()
-        editTextField.setPadding(40, 60,40, 10)
+        editTextField.setPadding(40, 60,40, 20)
         if(oldApiKey != "") editTextField.setText(oldApiKey)
         builder.setView(editTextField)
 
@@ -183,10 +216,7 @@ class MainActivity : AppCompatActivity() {
                             editor.putString("apyKey", editTextInput)
                             editor.apply()
                             Toast.makeText(applicationContext, R.string.save, Toast.LENGTH_SHORT).show()
-
-                            getLocation()
-                            getLanguage()
-                            getWeather()
+                            updateWeather()
                         }
                         dialog.dismiss()
                     }
@@ -212,11 +242,13 @@ class MainActivity : AppCompatActivity() {
                 arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
                 REQUEST_PERMISSION_FINE_LOCATION
             )
-        } else {
+        } else /*if(!hasGps && !hasNetwork){
+            //Toast.makeText(applicationContext, "Please enable GPS", Toast.LENGTH_SHORT).show()
+        } else*/ {
             if (hasGps) {
                 locationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
-                    60000,
+                    100,
                     100F,
                     object : LocationListener {
                         override fun onLocationChanged(p0: Location) {
@@ -245,7 +277,7 @@ class MainActivity : AppCompatActivity() {
             if (hasNetwork) {
                 locationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
-                    60000,
+                    100,
                     100F,
                     object : LocationListener {
                         override fun onLocationChanged(p0: Location) {
@@ -275,12 +307,21 @@ class MainActivity : AppCompatActivity() {
             df.roundingMode = RoundingMode.DOWN
             var lat : String
             var lon : String
-            if (locationGps.accuracy > locationNetwork.accuracy) {
-                lat = df.format(locationGps.latitude)
-                lon = df.format(locationGps.longitude)
-            } else {
-                lat = df.format(locationNetwork.latitude)
-                lon = df.format(locationNetwork.longitude)
+            /*var lat : String? = null
+            var lon : String? = null
+            if(locationNetwork != null && locationGps == null){
+                lat = df.format(locationNetwork!!.latitude)
+                lon = df.format(locationNetwork!!.longitude)
+            } else if(locationNetwork == null && locationGps != null){
+                lat = df.format(locationGps!!.latitude)
+                lon = df.format(locationGps!!.longitude)
+            }
+            else*/ if (locationGps!!.accuracy > locationNetwork!!.accuracy) {
+                lat = df.format(locationGps!!.latitude)
+                lon = df.format(locationGps!!.longitude)
+            } else {//if(locationGps!!.accuracy <= locationNetwork!!.accuracy){
+                lat = df.format(locationNetwork!!.latitude)
+                lon = df.format(locationNetwork!!.longitude)
             }
             lat = lat.replace(',', '.')
             lon = lon.replace(',', '.')
@@ -306,74 +347,56 @@ class MainActivity : AppCompatActivity() {
     private fun getWeather() {
         GlobalScope.launch {
             val response = networkRequest()
-            var errorCode = ""
             val navController = findNavController(R.id.nav_host_fragment)
             if (navController.currentDestination?.id == R.id.FirstFragment) {
                 val fragment: FirstFragment = supportFragmentManager.fragments.first().childFragmentManager.fragments.first() as FirstFragment
-                when(response.statusCode) {
-                    200 -> {
-                        val obj: JSONObject = response.jsonObject
-                        val location : JSONObject = obj.get("location") as JSONObject
-                        val current : JSONObject = obj.get("current") as JSONObject
+                if(response.statusCode == 200){
+                    val obj: JSONObject = response.jsonObject
+                    val location : JSONObject = obj.get("location") as JSONObject
+                    val current : JSONObject = obj.get("current") as JSONObject
 
-                        val city : String = location.get("name") as String
-                        val lastUpdate : String = current.get("last_updated") as String
-                        // Temperature in celsius
-                        val temp: Double = current.get("temp_c") as Double
-                        val temperature : Int = temp.toInt()
-                        // Wind speed in miles per hour
-                        val windSpeed: Double = current.get("wind_mph") as Double
-                        // Wind direction in degrees
-                        val windDirection: Int = current.get("wind_degree") as Int
+                    val city : String = location.get("name") as String
+                    val lastUpdate : String = current.get("last_updated") as String
+                    // Temperature in celsius
+                    val temp: Double = current.get("temp_c") as Double
+                    val temperature : Int = temp.toInt()
+                    // Wind speed in miles per hour
+                    val windSpeed: Double = current.get("wind_mph") as Double
+                    // Wind direction in degrees
+                    val windDirection: Int = current.get("wind_degree") as Int
 
-                        val condition : JSONObject = current.get("condition") as JSONObject
-                        val conditionText : String = condition.get("text") as String
-                        val iconUrl : String = condition.get("icon") as String
-                        val imageBitmap = getImageBitmap("https:$iconUrl")
-                        withContext(Dispatchers.Main){ //switched to Main thread
-                            fragment.city.text = city
-                            fragment.lastUpdate.text = getString(R.string.update, lastUpdate)
-                            fragment.icon.setImageBitmap(imageBitmap)
-                            fragment.temperature.text = "$temperature°C"
-                            fragment.wind.setText(R.string.wind)
-                            fragment.wind_icon.setImageResource(R.drawable.wind4_g)
-                            fragment.wind_speed_title.setText(R.string.speed)
-                            fragment.wind_speed.text = " $windSpeed m/h"
-                            fragment.wind_direction_title.setText(R.string.direction)
-                            fragment.wind_direction.text = " $windDirection°"
-                            fragment.short_description.text = conditionText
-                        }
+                    val condition : JSONObject = current.get("condition") as JSONObject
+                    val conditionText : String = condition.get("text") as String
+                    val iconUrl : String = condition.get("icon") as String
+                    val imageBitmap = getImageBitmap("https:$iconUrl")
+                    withContext(Dispatchers.Main){ //switched to Main thread
+                        fragment.table.setBackgroundResource(R.color.whitetrans)
+                        fragment.city.text = city
+                        fragment.lastUpdate.text = getString(R.string.update, lastUpdate)
+                        fragment.icon.setImageBitmap(imageBitmap)
+                        fragment.temperature.text = "$temperature°C"
+                        fragment.wind.setText(R.string.wind)
+                        fragment.wind_icon.setImageResource(R.drawable.wind4_g)
+                        fragment.wind_speed_title.setText(R.string.speed)
+                        fragment.wind_speed.text = " $windSpeed m/h"
+                        fragment.wind_direction_title.setText(R.string.direction)
+                        fragment.wind_direction.text = " $windDirection°"
+                        fragment.short_description.text = conditionText
                     }
-                    400 -> {
-                        when(response.jsonObject.get("errorCode")){
-                            1003 -> errorCode = "Parameter 'q' not provided."
-                            1005 -> errorCode = "API request url is invalid."
-                            1006 -> errorCode = "No location found matching parameter 'q'."
-                            9999 -> errorCode = "Internal application error."
-                        }
-                    }
-                    401 -> {
-                        when(response.jsonObject.get("errorCode")){
-                            1002 -> errorCode = "API key not provided."
-                            2006 -> errorCode = "API key provided is invalid."
-                        }
-                    }
-                    403 -> {
-                        when(response.jsonObject.get("errorCode")){
-                            2007 -> errorCode = "API key has exceeded calls per month quota."
-                            2008 -> errorCode = "API key has been disabled."
-                        }
-                    }
-                    else -> errorCode = "Unknown error."                        }
-                if(errorCode != ""){
-                    withContext(Dispatchers.Main){
-                        fragment.short_description.text = errorCode
+                } else {
+                    withContext(Dispatchers.Main) {
+                        checkError(response)
                     }
                 }
             }
         }
     }
 
+    private fun checkError(response:Response){
+        val error = response.jsonObject.get("error") as JSONObject
+        val errorCode : String = error.get("message") as String
+        Toast.makeText(applicationContext, errorCode, Toast.LENGTH_SHORT).show()
+    }
     private fun getImageBitmap(url: String): Bitmap? {
         var bm: Bitmap? = null
         try {
