@@ -1,9 +1,11 @@
 package com.example.weatherapp
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.ContentValues.TAG
 import android.content.Context
+import android.content.Intent
 import android.content.IntentSender
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -13,6 +15,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -49,6 +52,9 @@ class MainActivity : AppCompatActivity() {
 
     private val REQUEST_PERMISSION_FINE_LOCATION = 1
     private val REQUEST_CHECK_CODE = 2
+    companion object {
+        const val LOCATION_SETTING_REQUEST = 999
+    }
 
     //private val MY_API_KEY = "7242d5381f68418c8ff93444210203"
     private lateinit var myApiKey : String
@@ -71,34 +77,6 @@ class MainActivity : AppCompatActivity() {
         val prefs : SharedPreferences = getSharedPreferences("prefs", Context.MODE_PRIVATE)
         myApiKey = prefs.getString("apyKey", "") ?: ""
 
-        /*val request = LocationRequest()
-            .setFastestInterval(1500)
-            .setInterval(3000)
-            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-        val builder: LocationSettingsRequest.Builder = LocationSettingsRequest.Builder().addLocationRequest(request)
-        val result = LocationServices.getSettingsClient(this).checkLocationSettings(builder.build())
-        result.addOnCompleteListener(OnCompleteListener<LocationSettingsResponse?> { task ->
-            try {
-                task.getResult(ApiException::class.java)
-                getPermission()
-            } catch (e: ApiException) {
-                when (e.statusCode) {
-                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> try {
-                        val resolvableApiException =
-                            e as ResolvableApiException
-                        resolvableApiException.startResolutionForResult(
-                            this@MainActivity,
-                            REQUEST_CHECK_CODE
-                        )
-                    } catch (ex: IntentSender.SendIntentException) {
-                        ex.printStackTrace()
-                    } catch (ex: java.lang.ClassCastException) {
-                    }
-                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
-                    }
-                }
-            }
-        })*/
         getPermission()
     }
 
@@ -113,7 +91,95 @@ class MainActivity : AppCompatActivity() {
                     arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
                     REQUEST_PERMISSION_FINE_LOCATION
             )
-        } else getApiKey()
+        } else enableLocation()
+    }
+
+    private fun enableLocation(){
+        // initialize location request object
+        val request = LocationRequest.create()
+        request.run {
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            interval = 3000
+            setFastestInterval(1500)
+        }
+
+        // initialize location setting request builder object
+        val builder = LocationSettingsRequest.Builder()
+            .addLocationRequest(request)
+        val locationSettingsRequest = builder.build()
+
+        // initialize location service object
+        val settingsClient = LocationServices.getSettingsClient(this)
+        val result: Task<LocationSettingsResponse> = settingsClient.checkLocationSettings(locationSettingsRequest)
+
+        result.addOnSuccessListener { response ->
+            val states = response.locationSettingsStates
+            if(states.isLocationPresent){
+                getApiKey()
+            }
+
+            /*val states : LocationSettingsStates = LocationSettingsStates.fromIntent(intent)
+            when (requestCode){
+                REQUEST_CHECK_CODE -> {
+                    when(resultCode){
+                        Activity.RESULT_OK -> {
+                            // All required changes were successfully made
+                        }
+                        Activity.RESULT_CANCELED -> {
+                            // The user was asked to change settings, but chose not to
+                        }
+                    }
+                }
+            }*/
+        }
+        result.addOnFailureListener { e ->
+            if(e is ResolvableApiException){
+                try{
+                    //Handle result in onActivityResult()
+                    e.startResolutionForResult(this, MainActivity.LOCATION_SETTING_REQUEST)
+                } catch (sendEx: IntentSender.SendIntentException){
+
+                }
+            }
+        }
+
+        /*result.addOnCompleteListener(OnCompleteListener<LocationSettingsResponse?> { task ->
+            try {
+                val response: LocationSettingsResponse? = task.getResult(ApiException::class.java)
+                // All location settings are satisfied. The client can initialize location requests here.
+                getApiKey()
+            } catch (e: ApiException) {
+                when (e.statusCode) {
+                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
+                        // Location settings are not satisfied. But could be fixed by showing the user a dialog.
+                        try {
+                            // Cast to a resolvable exception.
+                            val resolvableApiException = e as ResolvableApiException
+
+                            // Show the dialog by calling startResolutionForResult(), and check the result in onActivityResult().
+                            resolvableApiException.startResolutionForResult(
+                                this@MainActivity,
+                                REQUEST_CHECK_CODE
+                            )
+
+                            val getContent = resolvableApiException.startResolutionForResult(
+                                this@MainActivity,
+                                REQUEST_CHECK_CODE
+                            )
+
+                        } catch (ex: IntentSender.SendIntentException) {
+                            // Ignore the error.
+                            ex.printStackTrace()
+                        } catch (ex: java.lang.ClassCastException) {
+                            // Ignore, should be an impossible error.
+                        }
+                    }
+                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
+                        // Location settings are not satisfied. However, we have no way to fix the settings so we won't show the dialog.
+                    }
+                }
+            }
+        })*/
     }
 
     private fun getApiKey(){
@@ -125,16 +191,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateWeather(){
-        getLocation()
         getLanguage()
-        getWeather()
+        getLocation()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_PERMISSION_FINE_LOCATION) {
             if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getApiKey()
+                enableLocation()
             } else {
                 this.getPermission()
             }
@@ -232,6 +297,7 @@ class MainActivity : AppCompatActivity() {
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         hasGps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         hasNetwork = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+
         if (ActivityCompat.checkSelfPermission(
                 this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION
@@ -242,9 +308,7 @@ class MainActivity : AppCompatActivity() {
                 arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
                 REQUEST_PERMISSION_FINE_LOCATION
             )
-        } else /*if(!hasGps && !hasNetwork){
-            //Toast.makeText(applicationContext, "Please enable GPS", Toast.LENGTH_SHORT).show()
-        } else*/ {
+        } else {
             if (hasGps) {
                 locationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
@@ -253,6 +317,7 @@ class MainActivity : AppCompatActivity() {
                     object : LocationListener {
                         override fun onLocationChanged(p0: Location) {
                             locationGps = p0
+                            setLarLon(locationGps)
                         }
 
                         override fun onProviderEnabled(provider: String) {
@@ -271,10 +336,14 @@ class MainActivity : AppCompatActivity() {
                     })
                 val localGpsLocation =
                     locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                if (localGpsLocation != null) locationGps = localGpsLocation
+                if (localGpsLocation != null) {
+                    locationGps = localGpsLocation
+                    setLarLon(locationGps)
+                }
+
             }
 
-            if (hasNetwork) {
+            else if (hasNetwork) {
                 locationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
                     100,
@@ -282,6 +351,7 @@ class MainActivity : AppCompatActivity() {
                     object : LocationListener {
                         override fun onLocationChanged(p0: Location) {
                             locationNetwork = p0
+                            setLarLon(locationNetwork)
                         }
 
                         override fun onProviderEnabled(provider: String) {
@@ -300,33 +370,23 @@ class MainActivity : AppCompatActivity() {
                     })
                 val localNetworkLocation : Location? =
                     locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-                if (localNetworkLocation != null) locationNetwork = localNetworkLocation
+                if (localNetworkLocation != null){
+                    locationNetwork = localNetworkLocation
+                    setLarLon(locationNetwork)
+                }
             }
-
-            val df = DecimalFormat("#.##")
-            df.roundingMode = RoundingMode.DOWN
-            var lat : String
-            var lon : String
-            /*var lat : String? = null
-            var lon : String? = null
-            if(locationNetwork != null && locationGps == null){
-                lat = df.format(locationNetwork!!.latitude)
-                lon = df.format(locationNetwork!!.longitude)
-            } else if(locationNetwork == null && locationGps != null){
-                lat = df.format(locationGps!!.latitude)
-                lon = df.format(locationGps!!.longitude)
-            }
-            else*/ if (locationGps!!.accuracy > locationNetwork!!.accuracy) {
-                lat = df.format(locationGps!!.latitude)
-                lon = df.format(locationGps!!.longitude)
-            } else {//if(locationGps!!.accuracy <= locationNetwork!!.accuracy){
-                lat = df.format(locationNetwork!!.latitude)
-                lon = df.format(locationNetwork!!.longitude)
-            }
-            lat = lat.replace(',', '.')
-            lon = lon.replace(',', '.')
-            location = "$lat,$lon"
         }
+    }
+
+    private fun setLarLon(locationGT: Location?){
+        val df = DecimalFormat("#.##")
+        df.roundingMode = RoundingMode.DOWN
+        var lat : String = df.format(locationGT!!.latitude)
+        var lon : String = df.format(locationGT!!.longitude)
+        lat = lat.replace(',', '.')
+        lon = lon.replace(',', '.')
+        location = "$lat,$lon"
+        getWeather()
     }
 
     // A készüléken beállított nyelvet adjuk át. (a rövid szöveges leírás ezen a nyelven fog érkezni)
