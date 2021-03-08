@@ -14,6 +14,7 @@
     <string name="api_key_hint">API kulcs</string>
     <string name="save">Mentés</string>
     <string name="cancel">Mégse</string>
+    <string name="updated">Időjárás adatok frissítve</string>
     <string name="invalid_api_key">A beállított API kulcs nem érvényes, kérem próbálja meg újra</string>
     <string name="empty_api_key">Kérem állítson be API kulcsot</string>
 </resources>

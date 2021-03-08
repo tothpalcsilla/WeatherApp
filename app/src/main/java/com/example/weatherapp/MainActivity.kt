@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
         const val REQUEST_PERMISSION_FINE_LOCATION = 1
         const val LOCATION_SETTING_REQUEST = 999
     }
-    
+
     private lateinit var myApiKey : String
     private lateinit var editTextField: EditText
 
@@ -404,6 +404,7 @@ class MainActivity : AppCompatActivity() {
                         fragment.wind_direction_title.setText(R.string.direction)
                         fragment.wind_direction.text = " $windDirection°"
                         fragment.short_description.text = conditionText
+                        Toast.makeText(applicationContext, R.string.updated, Toast.LENGTH_SHORT).show()
                     }
                 } else {
                     withContext(Dispatchers.Main) {
