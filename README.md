@@ -22,4 +22,6 @@ A minimum elvárt SDK verzió 19-es (Android 4.4)
 ### Mi az ami ebben a feladatban újdonság volt, utánajárást igényelt
 Korábban csak Java nyelven fejlesztettem Android alkalmazást, így a legnagyobb újdonság a Kotlin nyelv használata, és nyelvi elemeinek a megismerése volt.
 
+![image](https://github.com/tothpalcsilla/WeatherApp/blob/master/images/porto.png)
+![image](https://github.com/tothpalcsilla/WeatherApp/blob/master/images/lapa.png)
 ![image](https://github.com/tothpalcsilla/WeatherApp/blob/master/images/menu.png)
