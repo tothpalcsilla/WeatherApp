@@ -6,7 +6,7 @@
 A forráskódot a következő github repository **master** branch tartalmazza: https://github.com/tothpalcsilla/WeatherApp
 
 ### Fordítási útmutató  
-A projekt forráskódját clone-ozva, vagy tömörített mappaként letöltve, majd megfelelő fejlesztőkörnyezetben (például AndroidStudio-ban) megnyitva a szokásos módon fordítható. 
+A projekt forráskódját clone-ozva, vagy tömörített mappaként letöltve, majd megfelelő fejlesztőkörnyezetben (például AndroidStudio-ban) megnyitva a szokásos módon fordítható. Fordítás után az elkészült apk a WeatherApp\app\build\outputs\apk\debug mappában található app-debug.apk néven.
 
 ### Telepítési útmutató  
 A WeatherApp telepítéséhez másolja az [apk](https://github.com/tothpalcsilla/WeatherApp/tree/master/apk)-t az Android eszközre majd telepítse azt.
