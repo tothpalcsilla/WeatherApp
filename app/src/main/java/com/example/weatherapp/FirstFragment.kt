@@ -9,10 +9,6 @@ import android.widget.ImageView
 import android.widget.TableLayout
 import android.widget.TextView
 
-/**
- * Jelezzük ki a hőmérsékletet, szélerősséget, szélirányt és a rövid leírást.
- * Valamint az api által visszaadott hely (település, város) nevét.
- */
 class FirstFragment : Fragment() {
 
     //lateinit var location: TextView

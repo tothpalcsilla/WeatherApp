@@ -53,8 +53,7 @@ class MainActivity : AppCompatActivity() {
         const val REQUEST_PERMISSION_FINE_LOCATION = 1
         const val LOCATION_SETTING_REQUEST = 999
     }
-
-    //private val MY_API_KEY = "7242d5381f68418c8ff93444210203"
+    
     private lateinit var myApiKey : String
     private lateinit var editTextField: EditText
 
@@ -185,7 +184,7 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.action_update -> {
-                updateWeather()
+                enableLocation()
                 true
             }
             R.id.action_exit -> {
@@ -243,7 +242,7 @@ class MainActivity : AppCompatActivity() {
                             editor.putString("apyKey", editTextInput)
                             editor.apply()
                             Toast.makeText(applicationContext, R.string.save, Toast.LENGTH_SHORT).show()
-                            updateWeather()
+                            enableLocation()
                         }
                         dialog.dismiss()
                     }
@@ -391,6 +390,7 @@ class MainActivity : AppCompatActivity() {
                     val conditionText : String = condition.get("text") as String
                     val iconUrl : String = condition.get("icon") as String
                     val imageBitmap = getImageBitmap("https:$iconUrl")
+
                     withContext(Dispatchers.Main){ //switched to Main thread
                         fragment.table.setBackgroundResource(R.color.whitetrans)
                         fragment.city.text = city
@@ -421,19 +421,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getImageBitmap(url: String): Bitmap? {
-        var bm: Bitmap? = null
+        var bitmap: Bitmap? = null
         try {
             val aURL = URL(url)
             val conn: URLConnection = aURL.openConnection()
             conn.connect()
-            val `is`: InputStream = conn.getInputStream()
-                val bis = BufferedInputStream(`is`)
-                bm = BitmapFactory.decodeStream(bis)
+            val inputs: InputStream = conn.getInputStream()
+                val bis = BufferedInputStream(inputs)
+                    bitmap = BitmapFactory.decodeStream(bis)
                 bis.close()
-            `is`.close()
+            inputs.close()
         } catch (e: IOException) {
-            Log.e(TAG, "Error getting bitmap", e)
+            Log.e(TAG, "An error occurred while getting the icon as bitmap", e)
         }
-        return bm
+        return bitmap
     }
 }
