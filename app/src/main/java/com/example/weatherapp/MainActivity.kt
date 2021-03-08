@@ -15,7 +15,6 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -25,10 +24,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.app.ActivityCompat
 import androidx.navigation.findNavController
-import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
-import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
 import com.google.android.gms.tasks.Task
 import khttp.responses.Response
 import kotlinx.coroutines.Dispatchers
@@ -45,14 +45,12 @@ import java.net.URLConnection
 import java.text.DecimalFormat
 import java.util.*
 
-
 class MainActivity : AppCompatActivity() {
-    private val baseURL = "https://api.weatherapi.com/v1"
-    private val currentWeather = "/current.json"
 
-    private val REQUEST_PERMISSION_FINE_LOCATION = 1
-    private val REQUEST_CHECK_CODE = 2
     companion object {
+        const val BASE_URL = "https://api.weatherapi.com/v1"
+        const val CURRENT_WEATHER_URL = "/current.json"
+        const val REQUEST_PERMISSION_FINE_LOCATION = 1
         const val LOCATION_SETTING_REQUEST = 999
     }
 
@@ -114,72 +112,36 @@ class MainActivity : AppCompatActivity() {
 
         result.addOnSuccessListener { response ->
             val states = response.locationSettingsStates
-            if(states.isLocationPresent){
+            if(states!!.isLocationPresent){
                 getApiKey()
             }
-
-            /*val states : LocationSettingsStates = LocationSettingsStates.fromIntent(intent)
-            when (requestCode){
-                REQUEST_CHECK_CODE -> {
-                    when(resultCode){
-                        Activity.RESULT_OK -> {
-                            // All required changes were successfully made
-                        }
-                        Activity.RESULT_CANCELED -> {
-                            // The user was asked to change settings, but chose not to
-                        }
-                    }
-                }
-            }*/
         }
         result.addOnFailureListener { e ->
             if(e is ResolvableApiException){
                 try{
                     //Handle result in onActivityResult()
-                    e.startResolutionForResult(this, MainActivity.LOCATION_SETTING_REQUEST)
+                    e.startResolutionForResult(this, LOCATION_SETTING_REQUEST)
                 } catch (sendEx: IntentSender.SendIntentException){
 
                 }
             }
         }
+    }
 
-        /*result.addOnCompleteListener(OnCompleteListener<LocationSettingsResponse?> { task ->
-            try {
-                val response: LocationSettingsResponse? = task.getResult(ApiException::class.java)
-                // All location settings are satisfied. The client can initialize location requests here.
-                getApiKey()
-            } catch (e: ApiException) {
-                when (e.statusCode) {
-                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
-                        // Location settings are not satisfied. But could be fixed by showing the user a dialog.
-                        try {
-                            // Cast to a resolvable exception.
-                            val resolvableApiException = e as ResolvableApiException
-
-                            // Show the dialog by calling startResolutionForResult(), and check the result in onActivityResult().
-                            resolvableApiException.startResolutionForResult(
-                                this@MainActivity,
-                                REQUEST_CHECK_CODE
-                            )
-
-                            val getContent = resolvableApiException.startResolutionForResult(
-                                this@MainActivity,
-                                REQUEST_CHECK_CODE
-                            )
-
-                        } catch (ex: IntentSender.SendIntentException) {
-                            // Ignore the error.
-                            ex.printStackTrace()
-                        } catch (ex: java.lang.ClassCastException) {
-                            // Ignore, should be an impossible error.
-                        }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            LOCATION_SETTING_REQUEST -> {
+                when(resultCode){
+                    Activity.RESULT_OK -> {
+                        getApiKey()
                     }
-                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
-                        // Location settings are not satisfied. However, we have no way to fix the settings so we won't show the dialog.
+                    Activity.RESULT_CANCELED -> {
+                        finishAffinity()
                     }
                 }
             }
-        })*/
+        }
     }
 
     private fun getApiKey(){
@@ -266,7 +228,7 @@ class MainActivity : AppCompatActivity() {
                 GlobalScope.launch {
                     var response : Response
                     withContext(Dispatchers.IO) {// IO: Optimized for network and disk operations
-                        val url = baseURL + currentWeather
+                        val url = BASE_URL + CURRENT_WEATHER_URL
                         response = khttp.get(url = url, params = mapOf("key" to editTextInput, "q" to "London"))
                     }
                     if(response.statusCode >= 400){
@@ -397,7 +359,7 @@ class MainActivity : AppCompatActivity() {
     private suspend fun networkRequest(): Response {
         lateinit var response : Response
         withContext(Dispatchers.IO) {// IO: Optimized for network and disk operations
-            val url = baseURL + currentWeather
+            val url = BASE_URL + CURRENT_WEATHER_URL
             response = khttp.get(url = url, params = mapOf("key" to myApiKey, "q" to location, "lang" to language))
         }
         return response
@@ -457,6 +419,7 @@ class MainActivity : AppCompatActivity() {
         val errorCode : String = error.get("message") as String
         Toast.makeText(applicationContext, errorCode, Toast.LENGTH_SHORT).show()
     }
+
     private fun getImageBitmap(url: String): Bitmap? {
         var bm: Bitmap? = null
         try {
