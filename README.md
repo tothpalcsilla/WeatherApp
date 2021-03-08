@@ -1,5 +1,7 @@
 # WeatherApp
 
+![image](https://github.com/tothpalcsilla/WeatherApp/blob/master/images/land.png)
+
 ### A forráskód  
 A forráskódot a következő github repository **master** branch tartalmazza: https://github.com/tothpalcsilla/WeatherApp
 
@@ -13,3 +15,6 @@ A minimum elvárt SDK verzió 19-es (Android 4.4)
 ### Javaslatok továbbfejlesztésre  
 - időjárás előrejelzés
 - korábbi időjárásadatok tárolása, statusztikák készítése belőlük
+
+
+![image](https://github.com/tothpalcsilla/WeatherApp/blob/master/images/menu.png)
